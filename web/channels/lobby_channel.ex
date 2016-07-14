@@ -1,5 +1,6 @@
 defmodule PhaserDemo.LobbyChannel do
   use PhaserDemo.Web, :channel
+  alias PhaserDemo.Matchmaker
 
 
   # NOTE: channels use different channel_pid per topic,
@@ -9,7 +10,6 @@ defmodule PhaserDemo.LobbyChannel do
 
   def join("games:lobby", payload, socket) do 
     if authorized?(payload) do
-      IO.inspect socket
       {:ok, socket}
     else
       {:error, %{reason: "unauthorized"}}
@@ -22,7 +22,13 @@ defmodule PhaserDemo.LobbyChannel do
     This handles all the interroom messaging.
   """
   def join("games:" <> room_id, auth_message, socket) do
-    IO.inspect socket
+    IO.inspect room_id
+    if authorized?(auth_message) do
+      {:ok, _ref} = Matchmaker.join(Matchmaker, socket.channel_pid, room_id)
+      {:ok, socket}
+    else
+      {:error, %{reason: "unauthorized"}}
+    end
     {:ok, socket}
   end
 
@@ -36,6 +42,12 @@ defmodule PhaserDemo.LobbyChannel do
   # broadcast to everyone in the current topic
   def handle_in("shout", payload, socket) do
     broadcast socket, "shout", payload
+    {:noreply, socket}
+  end
+
+  def handle_in("match", _payload, socket) do
+    {:ok, room_id} = Matchmaker.match(Matchmaker)
+    push socket, "match", %{:room_id => room_id}
     {:noreply, socket}
   end
 

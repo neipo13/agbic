@@ -1,6 +1,6 @@
-defmodule PhaserDemo.MatchMaker do
+defmodule PhaserDemo.Matchmaker do
 	use GenServer
-
+	require Logger
 
   # NOTE: channels use different channel_pid per topic,
   # even when created from same socket
@@ -12,7 +12,9 @@ defmodule PhaserDemo.MatchMaker do
   # TODO: make poolable somehow? this is potential bottleneck
   # could pool and just round-robin -> but potentially scatter the subs
   # unless we look at ets for room_list
-
+  # ^^^ may be ideal for preserving and remonitoring on potential crash
+  # although, how would it know what to remonitor?
+  # this needs work ^^^
   
 	@max_subscribers 4
 
@@ -22,8 +24,12 @@ defmodule PhaserDemo.MatchMaker do
 		GenServer.start_link(__MODULE__, :ok, opts)
 	end
 
-	def match(server, pid) do
-		GenServer.call(server, {:match, pid})
+	def match(server) do
+		GenServer.call(server, :match)
+	end
+
+	def join(server, pid, room_id) do
+		GenServer.call(server, {:join, pid, room_id})
 	end
 
 	# call for  getting the next available room_id (should use funcs pulled from config in init -> later)
@@ -46,19 +52,28 @@ defmodule PhaserDemo.MatchMaker do
 		}
 	end
 
-	def handle_call({:match, pid}, _from, state) do
+	def handle_call(:match, _from, state) do
+		room_id = get_next_available_room(state)
+		Logger.debug "Match to room #{room_id}"
+		{:reply, {:ok, room_id}, state}
+	end
+
+	def handle_call({:join, pid, room_id}, _from, state) do
 		# TODO: get available room from matcher funcs
-		room_id = get_next_available_room()
 		ref = Process.monitor(pid)
 		s = state |> put_channel(room_id, ref) |> increment_room(room_id)
-		{:reply, {:ok, room_id}, s}
+		{:reply, {:ok, ref}, s}
 	end
 
 	def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
 		case Map.fetch(state.channels, ref) do
-			{:ok, room_id} -> state |> drop_channel(ref) |> decrement_room(room_id)
-			:error -> state
+			{:ok, room_id} -> {:noreply, state |> drop_channel(ref) |> decrement_room(room_id)}
+			:error -> {:noreply, state}
 		end
+	end
+
+	def handle_info(_msg, state) do
+		{:noreply, state}
 	end
 
 	defp get_next_available_room(state) do
@@ -66,17 +81,19 @@ defmodule PhaserDemo.MatchMaker do
 		# then use recursively (w/ prev winner, etc.)
 		# also factor wait time and room count
 		rooms = 
-			state.rooms
+			state
 			|> filter_max_subs()
-			|> Map.keys()
+			|> Enum.map(fn {room_id, _ct} -> room_id end)
+		Logger.debug "rooms: "
+		IO.inspect rooms
 		case rooms do 
 			[] -> gen_new_room()
-			[h|t] -> h
+			[h|_t] -> h
 		end
 	end
 
-	defp filter_max_subs(rooms) do
-		rooms |> Enum.filter(fn {room_id, ct} -> ct < state.max_subscribers end)
+	defp filter_max_subs(state) do
+		state.rooms |> Enum.filter(fn {_room_id, ct} -> ct < state.max_subscribers end)
 	end
 
 	defp gen_new_room() do

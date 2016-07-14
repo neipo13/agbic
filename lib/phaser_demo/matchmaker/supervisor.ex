@@ -7,8 +7,9 @@ defmodule PhaserDemo.Matchmaker.Supervisor do
 
 	def init([]) do
 		children = [
-			worker(PhaserDemo.Matchmaker, [], [name: PhaserDemo.Matchmaker])
+			worker(PhaserDemo.Matchmaker, [[name: PhaserDemo.Matchmaker]])
 		]
-	end
 
+		supervise(children, strategy: :one_for_one)
+	end
 end
