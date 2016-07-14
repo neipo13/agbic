@@ -6,15 +6,15 @@ defmodule PhaserDemo.Matchmaker do
   # even when created from same socket
   # this means we can monitor once through join, one channel per topic, etc.
 
-	# TODO: supervisor
   # TODO: config
 
-  # TODO: make poolable somehow? this is potential bottleneck
-  # could pool and just round-robin -> but potentially scatter the subs
-  # unless we look at ets for room_list
-  # ^^^ may be ideal for preserving and remonitoring on potential crash
-  # although, how would it know what to remonitor?
-  # this needs work ^^^
+  # TODO: make poolable, ets, recovery? or crash sockets, either way
+  # actually -> Process trap exit may be the way to go, since we'll
+  # for the sockets to rejoin (consider for yowo as well instead of ets foldl)
+  # and, they could rejoin a diff matchmaker and it wouldn't matter
+
+  # TODO: updates to functions, max subs, etc.
+  
   
 	@max_subscribers 4
 
@@ -32,15 +32,6 @@ defmodule PhaserDemo.Matchmaker do
 		GenServer.call(server, {:join, pid, room_id})
 	end
 
-	# call for  getting the next available room_id (should use funcs pulled from config in init -> later)
-	# this will be a recursive loop until we have a match, or none -> new room
-	# don't want the case where 1 can get stuck though... 
-	# might need to get crafty about wait time too -> use time stamp, give this highest
-	# option to ignore wait or set priority
-
-	# updates to funcs (later)
-
-	# monitor func w/ server, room and pid
 
 	# --- server callbacks ---
 
@@ -84,8 +75,6 @@ defmodule PhaserDemo.Matchmaker do
 			state
 			|> filter_max_subs()
 			|> Enum.map(fn {room_id, _ct} -> room_id end)
-		Logger.debug "rooms: "
-		IO.inspect rooms
 		case rooms do 
 			[] -> gen_new_room()
 			[h|_t] -> h

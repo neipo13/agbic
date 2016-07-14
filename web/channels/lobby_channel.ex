@@ -22,7 +22,6 @@ defmodule PhaserDemo.LobbyChannel do
     This handles all the interroom messaging.
   """
   def join("games:" <> room_id, auth_message, socket) do
-    IO.inspect room_id
     if authorized?(auth_message) do
       {:ok, _ref} = Matchmaker.join(Matchmaker, socket.channel_pid, room_id)
       {:ok, socket}
