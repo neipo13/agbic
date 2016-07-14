@@ -6,18 +6,24 @@ defmodule PhaserDemo.MatchMaker do
   # even when created from same socket
   # this means we can monitor once through join, one channel per topic, etc.
 
-  # TODO: make poolable somehow? this is potential bottleneck
+	# TODO: supervisor
+  # TODO: config
 
+  # TODO: make poolable somehow? this is potential bottleneck
+  # could pool and just round-robin -> but potentially scatter the subs
+  # unless we look at ets for room_list
+
+  
 	@max_subscribers 4
 
 	# --- client api ---
 
-	def start_link(name) do
-		GenServer.start_link(__MODULE__, :ok, name: name)
+	def start_link(opts \\ []) do
+		GenServer.start_link(__MODULE__, :ok, opts)
 	end
 
 	def match(server, pid) do
-		GenServer.call(server, {:monitor, pid})
+		GenServer.call(server, {:match, pid})
 	end
 
 	# call for  getting the next available room_id (should use funcs pulled from config in init -> later)
@@ -40,8 +46,9 @@ defmodule PhaserDemo.MatchMaker do
 		}
 	end
 
-	def handle_call({:monitor, pid}, _from, state) do
+	def handle_call({:match, pid}, _from, state) do
 		# TODO: get available room from matcher funcs
+		room_id = get_next_available_room()
 		ref = Process.monitor(pid)
 		s = state |> put_channel(room_id, ref) |> increment_room(room_id)
 		{:reply, {:ok, room_id}, s}
@@ -55,19 +62,25 @@ defmodule PhaserDemo.MatchMaker do
 	end
 
 	defp get_next_available_room(state) do
+		# TODO: if state has filter funcs or precedence funcs for matches, 
+		# then use recursively (w/ prev winner, etc.)
+		# also factor wait time and room count
 		rooms = 
 			state.rooms
 			|> filter_max_subs()
 			|> Map.keys()
-		# TODO: if state has filter funcs or precedence funcs for matches, 
-		# then use recursively (w/ prev winner, etc.)
 		case rooms do 
 			[] -> gen_new_room()
 			[h|t] -> h
+		end
 	end
 
 	defp filter_max_subs(rooms) do
 		rooms |> Enum.filter(fn {room_id, ct} -> ct < state.max_subscribers end)
+	end
+
+	defp gen_new_room() do
+		UUID.uuid4(:weak)
 	end
 
 	defp put_channel(state, room_id, ref) do
