@@ -26,8 +26,11 @@ function create() {
     map.addTilesetImage('agbicTexture', 'grassTiles');
     bgLayer = map.createLayer('Ground');
     blockLayer = map.createLayer('Player Collision');
+    game.physics.arcade.enable(bgLayer);
+    game.physics.arcade.enable(blockLayer);
     
-    map.setCollisionBetween(1,1000, true, 'Player Collision');
+    //map.setCollisionByExclusion([], true, 'Player Collision');
+    map.setCollisionByExclusion([0, -1], true, 'Ground');
     game.stage.backgroundColor = "#0E0518";
     game.stage.smoothed = false;
     
@@ -50,9 +53,11 @@ function create() {
 
 function update(){
     if(ready){
-        game.physics.arcade.collide(player.sprite, blockLayer);
+        var grounded = game.physics.arcade.overlap(player.sprite, bgLayer, null, overlapsPit);
+        if(!grounded){
+            console.log("im falling")
+        }
         bullets.callAll('doUpdate', null);
-        
         
         var commands = input.update();
         player.update(commands);
@@ -71,4 +76,11 @@ function bulletHit (obj, bullet){
 function render(){
     //game.debug.spriteInfo(player.sprite, 32, 32);
     //game.debug.spriteInfo(player.gun, 32, 32);
+}
+
+function overlapsPit(player, tile){
+    if(tile.index > 0){
+        return true;
+    }
+    return false;
 }
