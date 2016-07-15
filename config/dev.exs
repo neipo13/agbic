@@ -1,5 +1,7 @@
 use Mix.Config
 
+config :matchmaker, :max_subscribers, 2
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -32,3 +34,5 @@ config :logger, :console, format: "[$level] $message\n"
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
+
+

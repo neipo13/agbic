@@ -24,7 +24,6 @@ export class Lobby extends Phaser.State {
 
 	findMatch() {
 		this.channel.push("match", {});
-		//this.startGame() {body: id}
 	}
 
 	startGame(message) {
