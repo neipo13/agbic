@@ -20,10 +20,38 @@ import "phoenix_html"
 
 //import socket from "./socket"
 import { Socket } from "phoenix"
-import { Game } from "./game"
 
 // start socket, using token to ID user
-let socket = new Socket("/socket", {params: {token: window.userToken}})
-let game = new Game(700, 500, "phaser")
-game.start(socket)
+// let socket = new Socket("/socket", {params: {token: window.userToken}})
+// let game = new Game(700, 500, "phaser")
+// game.start(socket)
+
+var game = new Phaser.Game(480 , 288, Phaser.AUTO);
+let socket = new Socket("http://162.243.209.109:4000/", {params: {token: window.userToken}})
+
+var world = 1;
+var level = 1;
+var color = new Color();
+var health = new Health();
+
+game.antialias = false;
+
+    
+game.state.add('Menu', Menu);
+game.state.add('Game', Game);
+
+function start(socket) {
+	game.socket = socket;
+	socket.connect();
+	
+	// create channel
+	let channel = socket.channel("games:lobby", {});
+	channel.join()
+  	.receive("ok", resp => { console.log("Joined lobby successfully", resp) })
+  	.receive("error", resp => { console.log("Unable to join lobby", resp) })
+
+	// start Lobby state (key, clearWorld, clearCache, parameter to pass to state's init func)
+	
+    game.state.start('Menu');
+}
 
