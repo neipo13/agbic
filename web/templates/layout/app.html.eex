@@ -30,18 +30,6 @@
       </main>
 
     </div> <!-- /container -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.5.0/phaser.min.js"></script>-->
-    <script src="<%= static_path(@conn, "/js/util/utils.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/util/color.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/util/playerHealth.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/util/stateMachine.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/obj/bulletManager.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/obj/muzzleflash.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/obj/bullet.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/obj/explosion.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/obj/gun.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/obj/player.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/util/input.js") %>"></script>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>

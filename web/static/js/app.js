@@ -27,7 +27,8 @@ import { Socket } from "phoenix"
 // game.start(socket)
 
 var game = new Phaser.Game(480 , 288, Phaser.AUTO);
-let socket = new Socket("http://162.243.209.109:4000/", {params: {token: window.userToken}})
+// let socket = new Socket("http://162.243.209.109:4000/", {params: {token: window.userToken}})
+let socket = new Socket("/socket", {params: {token: window.userToken}})
 
 var world = 1;
 var level = 1;
