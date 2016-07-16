@@ -37,7 +37,6 @@ defmodule PhaserDemo.Matchmaker do
 		GenServer.call(server, {:change_max, max})
 	end
 
-
 	# --- server callbacks ---
 
 	@doc """
@@ -76,7 +75,8 @@ defmodule PhaserDemo.Matchmaker do
 	def handle_call({:join, pid, room_id}, _from, state) do
 		Process.link(pid) # link so we trap exit
 		# TODO: track time?
-
+		# TODO: check room_id again, make sure still < 4, otherwise {:error}, so client can re-match
+		
 		s = state |> put_channel(room_id, pid) |> increment_room(room_id)
 		{:reply, {:ok, pid}, s}
 	end
