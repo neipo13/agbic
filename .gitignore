@@ -1,24 +1,16 @@
-# App artifacts
-/_build
-/db
-/deps
-/*.ez
+# System and IDE files
+Thumbs.db
+.DS_Store
+.idea
+*.suo
+*.sublime-project
+*.sublime-workspace
 
-# Generated on crash by the VM
-erl_crash.dump
+# Vendors
+node_modules/
 
-# Static artifacts
-/node_modules
+# Build
+dist/
+/npm-debug.log
+out/
 
-# Since we are building assets from web/static,
-# we ignore priv/static. You may want to comment
-# this depending on your deployment strategy.
-/priv/static/
-
-# The config/prod.secret.exs file by default contains sensitive
-# data and you should not commit it into version control.
-#
-# Alternatively, you may comment the line below and commit the
-# secrets file as long as you replace its contents by environment
-# variables.
-/config/prod.secret.exs
