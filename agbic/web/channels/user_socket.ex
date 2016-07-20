@@ -2,7 +2,7 @@ defmodule Agbic.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  # channel "room:*", Agbic.RoomChannel
+  channel "game:*", Agbic.GamesChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
