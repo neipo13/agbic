@@ -9,10 +9,10 @@ export class Preload extends Phaser.State {
         this.game.load.spritesheet('bullet', 'images/bulletsheet.png', 32, 32, 18);
         this.game.load.spritesheet('xplo', 'images/explosion.png', 32, 32, 8);
 
-        // this.game.load.audio('jump', 'sounds/effects/jump.wav');
-        // this.game.load.audio('land', 'sounds/effects/land.wav');
-        // this.game.load.audio('step', 'sounds/effects/step.wav');
-        // this.game.load.audio('ouch', 'sounds/effects/dmg.wav');
+        this.game.load.audio('jump', 'sounds/effects/jump.wav');
+        this.game.load.audio('land', 'sounds/effects/land.wav');
+        this.game.load.audio('step', 'sounds/effects/step.wav');
+        this.game.load.audio('ouch', 'sounds/effects/dmg.wav');
     
     }
     

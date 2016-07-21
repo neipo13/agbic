@@ -34,3 +34,4 @@ config :logger, :console, format: "[$level] $message\n"
 config :phoenix, :stacktrace_depth, 20
 
 config :matchmaker, :max_subscribers, 4
+config :matchmaker, :room_mod, Agbic.GameRoom

@@ -1,13 +1,21 @@
 defmodule Agbic.GamesChannel do
   use Agbic.Web, :channel
   alias Matchmaker.RoomServer
+  require Logger
+
+  # velocity route
+  # start / lock route or check on join (would need to return from game_room)
+  # handle quits in room
+
+  # ---
 
   # NOTE: channels use different channel_pid per topic,
   # even when created from same socket
 
-  # this means we can monitor once through join, one channel per topic, etc. 
+  # ---
 
   def join("games:lobby", payload, socket) do 
+    Logger.debug "joining lobby"
     if authorized?(payload) do
       {:ok, socket}
     else
@@ -15,19 +23,30 @@ defmodule Agbic.GamesChannel do
     end
   end
 
-
-  @doc"""
+  @doc """
     Allow users to join a specific room. once matchmaking is done from lobby.
     This handles all the interroom messaging.
+    The RoomServer will create a room process from the configured module
+    and pass it the pid and a payload.
+    In this case, the payload is the socket, so we can
+    broadcast messages when players disconnect.
   """
   def join("games:" <> room_id, auth_message, socket) do
+    # TODO: is channel_pid what runs here? or socket? be nice to find out...
+    # could impact linking strategies
+    Logger.debug "joining room #{room_id}"
     if authorized?(auth_message) do
-      {:ok, _pid} = RoomServer.join(RoomServer, socket.channel_pid, room_id)
-      {:ok, socket}
+      case RoomServer.join(RoomServer, socket.channel_pid, room_id, socket) do
+        {:ok, _room_pid, position} -> 
+          Logger.debug "got position"
+          {:ok, %{position: position}, socket}
+        {:error, reason} -> 
+          Logger.debug "error from RoomServer: #{reason}"
+          {:error, %{reason: reason}}
+      end
     else
       {:error, %{reason: "unauthorized"}}
     end
-    {:ok, socket}
   end
 
   # Channels can be used in a request/response fashion
@@ -49,10 +68,13 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
-  # broadcast_from for position
-  # payload will be the position
   def handle_in("position", payload, socket) do
     broadcast_from socket, "position", payload
+    {:noreply, socket}
+  end
+
+  def handle_in("velocity", payload, socket) do
+    broadcast_from socket, "velocity", payload
     {:noreply, socket}
   end
 
