@@ -2,19 +2,16 @@ defmodule Agbic.GamesChannel do
   use Agbic.Web, :channel
   alias Matchmaker.RoomServer
 
+  # velocity route
+  # start / lock route or check on join (would need to return from game_room)
+  # handle quits in room
 
-# PULL
-# set up room
-# wait for start
-# player ids
-# velocity route
-# handle quits in room -> msh yo oyhrt
-
+  # ---
 
   # NOTE: channels use different channel_pid per topic,
   # even when created from same socket
 
-  # this means we can monitor once through join, one channel per topic, etc. 
+  # ---
 
   def join("games:lobby", payload, socket) do 
     if authorized?(payload) do
@@ -24,19 +21,25 @@ defmodule Agbic.GamesChannel do
     end
   end
 
-
-  @doc"""
+  @doc """
     Allow users to join a specific room. once matchmaking is done from lobby.
     This handles all the interroom messaging.
+    The RoomServer will create a room process from the configured module
+    and pass it the pid and a payload.
+    In this case, the payload is the socket, so we can
+    broadcast messages when players disconnect.
   """
   def join("games:" <> room_id, auth_message, socket) do
+    # TODO: is channel_pid what runs here? or socket? be nice to find out...
+    # could impact linking strategies
     if authorized?(auth_message) do
-      {:ok, _pid} = RoomServer.join(RoomServer, socket.channel_pid, room_id)
-      {:ok, socket}
+      case RoomServer.join(RoomServer, socket.channel_pid, room_id, socket) do
+        {:ok, _room_pid, position} -> {:ok, %{position: position}, socket}
+        {:error, reason} -> {:error, %{reason: reason}}
+      end
     else
       {:error, %{reason: "unauthorized"}}
     end
-    {:ok, socket}
   end
 
   # Channels can be used in a request/response fashion

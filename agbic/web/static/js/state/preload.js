@@ -38,6 +38,7 @@ export class Preload extends Phaser.State {
 		let gameChannel = this.game.socket.channel("games:" + room_id, {});
 		gameChannel.join()
 			.receive("ok", resp => { console.log("Joined game room successfully", resp) })
+            .receive("ok", payload, resp => {console.log(payload)})
 			.receive("error", resp => { console.log("Unable to join game room", resp) });
         this.game.state.start('play', true, false);
 // 		this.game.state.start('gameRoom', true, false, gameChannel);
