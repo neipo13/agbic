@@ -37,9 +37,9 @@ defmodule Agbic.GamesChannel do
     Logger.debug "joining room #{room_id}"
     if authorized?(auth_message) do
       case RoomServer.join(RoomServer, socket.channel_pid, room_id, socket) do
-        {:ok, _room_pid, position} -> 
-          Logger.debug "got position"
-          {:ok, %{position: position}, socket}
+        {:ok, _room_pid, player_num} -> 
+          Logger.debug "got player num"
+          {:ok, %{player: player_num}, socket}
         {:error, reason} -> 
           Logger.debug "error from RoomServer: #{reason}"
           {:error, %{reason: reason}}
