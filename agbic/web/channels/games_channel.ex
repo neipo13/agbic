@@ -68,10 +68,13 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
-  # broadcast_from for position
-  # payload will be the position
   def handle_in("position", payload, socket) do
     broadcast_from socket, "position", payload
+    {:noreply, socket}
+  end
+
+  def handle_in("velocity", payload, socket) do
+    broadcast_from socket, "velocity", payload
     {:noreply, socket}
   end
 

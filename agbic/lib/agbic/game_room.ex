@@ -32,6 +32,10 @@ defmodule Agbic.GameRoom do
   def handle_call({:join, socket}, _from, state) do
     Process.link(socket.channel_pid) # trap exits of joiners, but crash join channels if room goes down
     {pos, st} = assign_player(state, socket, 1)
+    # TODO: maybe singal in another field in return_args whether the room has 4 and should start
+    # match (either joined, pos) or (koined, pos, ready!) or something
+    # then, can signal to lock and bcast start to all
+    # then, let client start sending velocity
     {:reply, {:ok, :joined, pos}, st}
   end
 
