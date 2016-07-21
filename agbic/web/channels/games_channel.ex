@@ -70,11 +70,6 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
-  def handle_in("position", payload, socket) do
-    broadcast_from socket, "position", payload
-    {:noreply, socket}
-  end
-
   def handle_in("movement", payload, socket) do
     broadcast_from socket, "movement", payload
     {:noreply, socket}
