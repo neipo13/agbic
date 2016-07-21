@@ -18,4 +18,17 @@ import "phoenix_html"
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-// import socket from "./socket"
+//import socket from "./socket"
+import { Socket } from "phoenix"
+import { Game } from "./game"
+
+// start socket, using token to ID user
+// let socket = new Socket("/socket", {params: {token: window.userToken}})
+// let game = new Game(700, 500, "phaser")
+// game.start(socket)
+
+let game = new Game(480 , 288, "phaser");
+// let socket = new Socket("http://162.243.209.109:4000/", {params: {token: window.userToken}})
+let socket = new Socket("/socket", {params: {token: window.userToken}})
+game.start(socket);
+
