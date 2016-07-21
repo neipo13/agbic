@@ -1,6 +1,15 @@
-defmodule PhaserDemo.GamesChannel do
-  use PhaserDemo.Web, :channel
+defmodule Agbic.GamesChannel do
+  use Agbic.Web, :channel
   alias Matchmaker.RoomServer
+
+
+# PULL
+# set up room
+# wait for start
+# player ids
+# velocity route
+# handle quits in room -> msh yo oyhrt
+
 
   # NOTE: channels use different channel_pid per topic,
   # even when created from same socket
