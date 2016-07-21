@@ -1,6 +1,7 @@
 defmodule Agbic.GamesChannel do
   use Agbic.Web, :channel
   alias Matchmaker.RoomServer
+  require Logger
 
   # velocity route
   # start / lock route or check on join (would need to return from game_room)
@@ -14,6 +15,7 @@ defmodule Agbic.GamesChannel do
   # ---
 
   def join("games:lobby", payload, socket) do 
+    Logger.debug "joining lobby"
     if authorized?(payload) do
       {:ok, socket}
     else
@@ -32,10 +34,15 @@ defmodule Agbic.GamesChannel do
   def join("games:" <> room_id, auth_message, socket) do
     # TODO: is channel_pid what runs here? or socket? be nice to find out...
     # could impact linking strategies
+    Logger.debug "joining room #{room_id}"
     if authorized?(auth_message) do
       case RoomServer.join(RoomServer, socket.channel_pid, room_id, socket) do
-        {:ok, _room_pid, position} -> {:ok, %{position: position}, socket}
-        {:error, reason} -> {:error, %{reason: reason}}
+        {:ok, _room_pid, position} -> 
+          Logger.debug "got position"
+          {:ok, %{position: position}, socket}
+        {:error, reason} -> 
+          Logger.debug "error from RoomServer: #{reason}"
+          {:error, %{reason: reason}}
       end
     else
       {:error, %{reason: "unauthorized"}}
