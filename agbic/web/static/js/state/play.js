@@ -3,6 +3,13 @@ import { Input } from "../util/input"
 import { Player } from "../obj/player"
 
 export class Play extends Phaser.State {
+    
+    init(...args) {
+		let [id] = args;
+		this.playerId = id.player;
+		this.channel = id.channel;
+	}
+	
     preload() {
         console.log("in play preload");
         this.ready = false;
@@ -39,7 +46,11 @@ export class Play extends Phaser.State {
         
         this.player = new Player(this.game, 144, 160);
         this.player.preload();
-        this.player.create(this.game, 144, 160, this.bullets);
+        this.player.create(this.game, 144, 160, this.bullets, this.playerId, this.channel);
+        if(!this.playerId)
+        {
+            console.log("WE HAVE NO ID");
+        }
         this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
         this.game.physics.arcade.isPaused = false;
         
@@ -56,7 +67,8 @@ export class Play extends Phaser.State {
             this.bullets.callAll('doUpdate', null);
             
             var commands = this.input.update();
-            this.player.update(commands);
+            this.player.doUpdate(commands);
+            this.player.doPostUpdate();
         }
     }
     

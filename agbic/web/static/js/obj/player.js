@@ -24,7 +24,10 @@ export class Player extends Phaser.Sprite{
         this.reloadTimer = 0;
     }
     
-    create (game, x, y, bulletGroup) {
+    create (game, x, y, bulletGroup, playerId, channel) {
+        this.id = playerId;
+        this.channel = channel;
+        this.channel.on("velocity", this.updatePosition.bind(this));
         //this = this.game.add.sprite(startX, startY, 'player');
         //Phaser.Sprite.call(this, game, x, y, 'player');
         this.game.add.existing(this);
@@ -56,7 +59,7 @@ export class Player extends Phaser.Sprite{
         
     }
     
-    update(input){
+    doUpdate(input){
         
         if(!this.controlLoss && input){
             this.updateMovement(input);
@@ -65,6 +68,16 @@ export class Player extends Phaser.Sprite{
         }
         //this.updateInvincibility();
         //this.gun.doUpdate(this, this.scale.x < 0);
+    }
+    
+    doPostUpdate(){
+        this.channel.push("velocity", { x: this.body.velocity.x, y:this.body.velocity.y});
+    }
+    
+    updatePosition(pos){
+        console.log("got position", pos);
+        this.body.velocity.x = pos.x;
+        this.body.velocity.y = pos.y;
     }
     
     updateMovement(input){
