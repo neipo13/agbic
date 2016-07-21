@@ -3,8 +3,10 @@ defmodule Agbic.GamesChannel do
   alias Matchmaker.RoomServer
   require Logger
 
-  # velocity route
-  # start / lock route or check on join (would need to return from game_room)
+  # unified movement route (still just relay)
+  # break lobby out so that we don't confuse w/ game room
+  # send every player, every time a new one joins
+  # lock room and set start message when max subs reach
   # handle quits in room
 
   # ---
@@ -73,8 +75,8 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
-  def handle_in("velocity", payload, socket) do
-    broadcast_from socket, "velocity", payload
+  def handle_in("movement", payload, socket) do
+    broadcast_from socket, "movement", payload
     {:noreply, socket}
   end
 
