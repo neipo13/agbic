@@ -41,8 +41,9 @@ export class Preload extends Phaser.State {
 			{ 
 			    resp.channel = gameChannel;
 			    console.log("Joined game room successfully", resp);
+                // leave the lobby!
+                this.channel.leave(); 
                 this.game.state.start('play', true, false, resp); 
-			    
 			})
 			.receive("error", resp => 
 			{ 

@@ -5,9 +5,19 @@ import { Player } from "../obj/player"
 export class Play extends Phaser.State {
     
     init(...args) {
-		let [id] = args;
-		this.playerId = id.player;
-		this.channel = id.channel;
+        // note: we have to handle the first players state msg here,
+        // as we'll receive the player_joined bcast before we can handle the event
+        // alternately, subscribe to the event before joining the game_room
+        // back in preload
+		let [{player, players, channel}] = args;
+		this.playerId = player;
+		this.channel = channel;
+        console.log(player);
+        console.log(players);
+
+        // all future player joins can be handled here
+        this.channel.on("player_joined", this.playerJoined) // doesn't seem to recv self?
+        // todo: handle the start signal
 	}
 	
     preload() {
@@ -91,5 +101,10 @@ export class Play extends Phaser.State {
             return true;
         }
         return false;
+    }
+
+    playerJoined(players_state) {
+        console.log("player joined, current state:")
+        console.log(players_state);
     }
 }
