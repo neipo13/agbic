@@ -8,8 +8,6 @@ export class Game extends Phaser.Game {
 		// set up game state [name, class, autostart]
 		this.state.add("preload", Preload, false);
 		this.state.add("play", Play, false);
-		
-		this.stage.disableVisibilityChange = true;
 		this.antialias = false;
 	}
 

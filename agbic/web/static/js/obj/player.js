@@ -1,3 +1,5 @@
+import { Gun } from "./gun"
+
 export class Player extends Phaser.Sprite{
     constructor(game, x, y){
         super(game, x, y, 'player');
@@ -24,10 +26,9 @@ export class Player extends Phaser.Sprite{
         this.reloadTimer = 0;
     }
     
-    create (game, x, y, bulletGroup, playerId, channel) {
+    create (bulletGroup, playerId, channel) {
         this.id = playerId;
         this.channel = channel;
-        //this.channel.on("movement", this.updatePosition.bind(this));
         //this = this.game.add.sprite(startX, startY, 'player');
         //Phaser.Sprite.call(this, game, x, y, 'player');
         this.game.add.existing(this);
@@ -46,126 +47,22 @@ export class Player extends Phaser.Sprite{
         this.anchor.setTo(.5, .5);
         this.body.setSize(18, 16, 0, 8);
         this.scale.setTo(1,1);
-    
-        this.animate('idle');
         //this.setupHealth();
         //this.bulletManager = new BulletManager(bulletGroup, 3);
         
         
         //gun and gun anims
-        // this.gun = new Gun();
-        // this.gun.create(startX, startY);
-        // this.game.add.existing(this.gun);
-        
-    }
+        this.gun = new Gun(this.game, this.x, this.y);
+        this.gun.create();
+        this.game.add.existing(this.gun);
     
-    doUpdate(input){
-        
-        if(!this.controlLoss && input){
-            this.updateMovement(input);
-            //this.updateShooting(input);
-            this.scale.x = (this.x > this.game.input.activePointer.position.x) ? -1 :  1;
-        }
-        //this.updateInvincibility();
-        //this.gun.doUpdate(this, this.scale.x < 0);
-    }
-    
-    doPostUpdate(){
-        this.channel.push("movement", { x: this.body.velocity.x, y:this.body.velocity.y});
-    }
-    updatePosition(movement){
-        console.log("got movement", movement);
-        this.body.velocity.x = movement.x;
-        this.body.velocity.y = movement.y;
-    }
-    
-    updateMovement(input){
-        var running = false;
-        //handle x movement
-        if(input.left)
-        {
-            this.lastFrameInputX = 'L';
-            running = true;
-            this.body.velocity.x = -1;
-        }
-        else if(input.right)
-        {
-            this.lastFrameInputX='R';
-            running = true;
-            this.body.velocity.x = 1;
-        }
-        else
-        {
-            this.body.velocity.x = 0;
-            this.lastFrameInputX = '';
-        }
-        //handle y movement
-        if(input.up)
-        {
-            this.lastFrameInputY = 'U';
-            running = true;
-            this.body.velocity.y = -1;
-        }
-        else if(input.down)
-        {
-            this.lastFrameInputY='D';
-            running = true;
-            this.body.velocity.y = 1;
-        }
-        else
-        {
-            this.body.velocity.y = 0;
-            this.lastFrameInputX = '';
-        }
-        this.body.velocity.normalize();
-        this.body.velocity.x *= this.moveSpeed;
-        this.body.velocity.y *= this.moveSpeed;
-        
-        if(running){
-            this.animate('run');
-        }
-        else{
-            this.animate('idle');
-        }
-    }
-    
-    updateShooting(input){
-        if(input.shoot && this.reloadTimer <= 0){
-            this.bulletManager.fire(this.x, this.y, (this.scale.x > 0 ? 'R' : 'L'));
-            this.reloadTimer = this.reloadTime;
-            this.animate('shoot');
-        }
-        if(this.reloadTimer > 0){
-            this.reloadTimer--;
-        }
-    }
-    
-    updateInvincibility(){
-        if(this.invincible){
-            
-            if(this.invincibilityTimer >= this.invincibilityFrames){
-                this.invincibilityTimer = 0;
-                this.invincible = false;
-            }
-            else{
-                this.invincibilityTimer++;
-            }
-        }
-        if(this.controlLoss){
-            if(this.controlLossTimer >= this.controlLossFrames){
-                this.controlLossTimer = 0;
-                this.controlLoss = false;
-            }
-            else{
-                this.controlLossTimer++;
-            }
-        }
+        this.animate('idle');
     }
     
     getHit(dmg, obstacleX){
         console.log('OWWWWWWW');
-        game.sound.play('ouch');
-        health.takeDmg(dmg);
+        this.game.sound.play('ouch');
+        //health.takeDmg(dmg);
         this.animate('hit');
         this.invincible = true;
         this.controlLoss = true;
@@ -188,7 +85,7 @@ export class Player extends Phaser.Sprite{
     */
     animate(name){
         this.animations.play(name);
-        //this.gun.animations.play(name);
+        this.gun.animations.play(name);
     }
     
 }
