@@ -27,7 +27,7 @@ export class Player extends Phaser.Sprite{
     create (game, x, y, bulletGroup, playerId, channel) {
         this.id = playerId;
         this.channel = channel;
-        this.channel.on("velocity", this.updatePosition.bind(this));
+        //this.channel.on("movement", this.updatePosition.bind(this));
         //this = this.game.add.sprite(startX, startY, 'player');
         //Phaser.Sprite.call(this, game, x, y, 'player');
         this.game.add.existing(this);
@@ -71,13 +71,13 @@ export class Player extends Phaser.Sprite{
     }
     
     doPostUpdate(){
-        this.channel.push("velocity", { x: this.body.velocity.x, y:this.body.velocity.y});
+        this.channel.push("movement", { x: this.body.velocity.x, y:this.body.velocity.y});
     }
     
-    updatePosition(pos){
-        console.log("got position", pos);
-        this.body.velocity.x = pos.x;
-        this.body.velocity.y = pos.y;
+    updatePosition(movement){
+        console.log("got movement", movement);
+        this.body.velocity.x = movement.x;
+        this.body.velocity.y = movement.y;
     }
     
     updateMovement(input){

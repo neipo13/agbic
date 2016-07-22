@@ -3,6 +3,7 @@ defmodule Agbic.UserSocket do
 
   ## Channels
   channel "games:*", Agbic.GamesChannel
+  #channel "lobby:*"
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
