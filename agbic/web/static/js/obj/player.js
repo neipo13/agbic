@@ -76,8 +76,8 @@ export class Player extends Phaser.Sprite{
     
     updatePosition(pos){
         console.log("got position", pos);
-        this.body.velocity.x = pos.x;
-        this.body.velocity.y = pos.y;
+        this.body.velocity.x += pos.x;
+        this.body.velocity.y += pos.y;
     }
     
     updateMovement(input){
