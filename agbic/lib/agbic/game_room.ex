@@ -2,9 +2,8 @@ defmodule Agbic.GameRoom do
   @behaviour Matchmaker.Room
   use GenServer
 
-  # TODO: convert to agent? (only if we can crash the channels...)
-  # could do if we actually track the room_pid to room_id in matchmaker,
-  # then get channel_pids, but this seems crazy...
+  # TODO: convert to agent, and let the channels monitor the room
+
 
   def start_link(room_id) do
     GenServer.start_link(__MODULE__, {:ok, room_id}, [])
@@ -25,7 +24,6 @@ defmodule Agbic.GameRoom do
   # ---
 
   def init({:ok, room_id}) do
-    Process.flag(:trap_exit, true) # trap exits of joiners, but crash join channels if room goes down
     {:ok, %{:room_id => room_id, :players => %{}}}
   end
 
