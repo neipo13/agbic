@@ -27,7 +27,7 @@ export class Player extends Phaser.Sprite{
     create (game, x, y, bulletGroup, playerId, channel) {
         this.id = playerId;
         this.channel = channel;
-        this.channel.on("movement", this.updatePosition.bind(this));
+        //this.channel.on("movement", this.updatePosition.bind(this));
         //this = this.game.add.sprite(startX, startY, 'player');
         //Phaser.Sprite.call(this, game, x, y, 'player');
         this.game.add.existing(this);

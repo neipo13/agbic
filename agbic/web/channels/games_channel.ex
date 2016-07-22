@@ -4,14 +4,10 @@ defmodule Agbic.GamesChannel do
   alias Phoenix.Socket
   require Logger
 
-  # break lobby out so that we don't confuse w/ game room
-    # this should be okay, just know to disconnect!!!
-  # send every player, every time a new one joins
   # lock room and set start message when max subs reach
-  # handle quits in room
-  
-  # NEED to know how to disconnect from a channel, esp. lobby
-  # do this after joining room
+  # handle quits in room -> bcast to all and remove the player from state
+  # matchmaker needs to handle bad rooms on decrement
+
   # it'd be nice to monitor the room server too so we could bounce instead of crash?
 
   # ---
@@ -23,10 +19,6 @@ defmodule Agbic.GamesChannel do
 
   def join("games:lobby", payload, socket) do 
     Logger.debug "joining lobby"
-    Logger.debug "here is this pid: "
-    IO.inspect self()
-    Logger.debug "here is the channel pid:"
-    IO.inspect(socket.channel_pid)
     if authorized?(payload) do
       {:ok, socket}
     else
@@ -43,16 +35,13 @@ defmodule Agbic.GamesChannel do
     broadcast messages when players disconnect.
   """
   def join("games:" <> room_id, auth_message, socket) do
-    # TODO: is channel_pid what runs here? or socket? be nice to find out...
-    # could impact linking strategies
-    # TODO: may need to check if this is a rejoin, but should be okay since we handle crash of channel_pid
-    IO.inspect(socket.channel_pid)
     if authorized?(auth_message) do
       case RoomServer.join(RoomServer, socket.channel_pid, room_id, socket) do
-        {:ok, room_pid, player_num} -> 
+        {:ok, room_pid, {player_num, players}} -> 
           Logger.debug "got player num"
           room_ref = Process.monitor(room_pid)
-          {:ok, %{player: player_num}, Socket.assign(socket, :room_ref, room_ref)}
+          send(self(), {:after_join, %{players: players}}) # after joining, handle this msg to bcast
+          {:ok, %{player: player_num, players: players}, Socket.assign(socket, :room_ref, room_ref)}
         {:error, reason} -> 
           Logger.debug "error from RoomServer: #{reason}"
           {:error, %{reason: reason}}
@@ -71,18 +60,23 @@ defmodule Agbic.GamesChannel do
   # It is also common to receive messages from the client and
   # broadcast to everyone in the current topic
   def handle_in("shout", payload, socket) do
-    broadcast socket, "shout", payload
+    broadcast(socket, "shout", payload)
     {:noreply, socket}
   end
 
   def handle_in("match", _payload, socket) do
     {:ok, room_id} = RoomServer.match(RoomServer)
-    push socket, "match", %{:room_id => room_id}
+    push(socket, "match", %{:room_id => room_id})
     {:noreply, socket}
   end
 
   def handle_in("movement", payload, socket) do
-    broadcast_from socket, "movement", payload
+    broadcast_from(socket, "movement", payload)
+    {:noreply, socket}
+  end
+
+  def handle_info({:after_join, player_payload}, socket) do
+    broadcast(socket, "player_joined", player_payload)
     {:noreply, socket}
   end
 

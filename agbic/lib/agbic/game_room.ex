@@ -34,7 +34,8 @@ defmodule Agbic.GameRoom do
     # match (either joined, pos) or (koined, pos, ready!) or something
     # then, can signal to lock and bcast start to all
     # then, let client start sending velocity
-    {:reply, {:ok, :joined, num}, st}
+    players = Map.keys(st.players)
+    {:reply, {:ok, :joined, {num, players}}, st}
   end
 
   def handle_info(_msg, state) do
