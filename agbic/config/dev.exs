@@ -33,5 +33,6 @@ config :logger, :console, format: "[$level] $message\n"
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
 
-config :matchmaker, :max_subscribers, 4
-config :matchmaker, :room_mod, Agbic.GameRoom
+config :matchmaker, Matchmaker.Supervisor, 
+    max_subscribers: 4,
+    room_adapter: Agbic.GameRoom
