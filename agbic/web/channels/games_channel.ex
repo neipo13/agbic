@@ -81,7 +81,9 @@ defmodule Agbic.GamesChannel do
   end
 
   def handle_info({:player_left, num}, socket) do
+    Logger.debug "GamesChannel: player #{num} left, about to notify clients"
     push(socket, "player_left", %{player: num})
+    {:noreply, socket}
   end
 
   def handle_info({:DOWN, ref, :process, _pid, _reason}, socket) do
