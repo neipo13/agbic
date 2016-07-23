@@ -3,36 +3,39 @@ defmodule Agbic.GameRoom do
   use GenServer
   require Logger
 
-  # TODO: convert to agent, and let the channels monitor the room
-
+  # TODO: convert to agent? probably not, needs to broadcast messages...
 
   def start_link(room_id, room_server) do
     GenServer.start_link(__MODULE__, {:ok, room_id, room_server}, [])
   end
 
-  def join(server, _channel_pid, socket) do
-    GenServer.call(server, {:join, socket})
+  def join(room, _channel_pid, socket) do
+    Logger.debug "GameRoom handling player join"
+    GenServer.call(room, {:join, socket})
   end
 
-  def leave(server, pid) do
-    # TODO: must remove player, and also bcast to others
-    GenServer.call(server, {:leave, pid})
+  def leave(room, pid) do
+    Logger.debug "GameRoom removing player"
+    GenServer.call(room, {:leave, pid})
   end
 
-  def close(server) do
+  def close(room) do
     Logger.debug "GameRoom stopping..."
-    GenServer.stop(server, :normal)
+    GenServer.stop(room, :normal)
+  end
+
+  def lock(room) do
+    Logger.debug "GameRoom locking..."
+    GenServer.call(room, :lock)
   end
 
   # ---
 
   def init({:ok, room_id, room_server}) do
-    ref = Process.monitor(room_server)
     {:ok, %{:room_id => room_id, 
       :players => Map.new(), # map player_num to socket
       :player_pids => Map.new(), # map pid to player_num
-      :room_server => room_server, 
-      :server_ref => ref}}
+      :room_server => room_server}}
   end
 
   def handle_call({:join, socket}, _from, state) do
@@ -42,6 +45,7 @@ defmodule Agbic.GameRoom do
     # then, can signal to lock and bcast start to all
     # then, let client start sending velocity
     players = Map.keys(nu_state.players)
+    # ct...
     {:reply, {:ok, :joined, {num, players}}, nu_state}
   end
 
@@ -53,6 +57,11 @@ defmodule Agbic.GameRoom do
         broadcast(nu_players, {:player_left, num})
         {:reply,:ok, %{state | players: nu_players, player_pids: nu_pids}}
     end
+  end
+
+  def handle_call(:lock, _from, state) do
+    broadcast(state.players, :start)
+    {:reply, :ok, state}
   end
 
   def handle_info(_msg, state) do

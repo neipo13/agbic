@@ -20,7 +20,7 @@ export class Play extends Phaser.State {
         // all future player joins can be handled here
         this.channel.on("player_joined", this.playerJoined.bind(this))
         this.channel.on("player_left", this.playerLeft.bind(this))
-        // todo: handle the start signal
+        this.channel.on("start", this.start.bind(this))
 	}
 	
     preload() {
@@ -120,5 +120,10 @@ export class Play extends Phaser.State {
 
     playerLeft(msg) {
         console.log("player left: " + msg.player);
+    }
+
+    start(msg) {
+        console.log("received start!");
+        console.log(msg);
     }
 }

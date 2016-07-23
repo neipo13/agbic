@@ -86,8 +86,15 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
+  def handle_info(:start, socket) do
+    Logger.debug "GamesChannel: starting!!!"
+    push(socket, "start", %{:start => true})
+    {:noreply, socket}
+  end
+
   def handle_info({:DOWN, ref, :process, _pid, _reason}, socket) do
-    # leave channel if room goes down
+    # leave channel if room goes down (for now)
+    # client, however, needs to leave channel or will try to rejoin...
     cond do
       ref == socket.assigns.room_ref -> {:stop, :normal, socket}
       true -> {:noreply, socket}
