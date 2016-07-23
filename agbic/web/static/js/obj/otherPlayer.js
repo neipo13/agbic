@@ -13,7 +13,7 @@ export class OtherPlayer extends Player{
     }
     
     updatePosition(movement){
-        //console.log("got movement", movement);
+        console.log("got movement", movement);
         this.x = movement.x;
         this.y = movement.y;
         this.gun.x = movement.x;
