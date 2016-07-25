@@ -18,8 +18,9 @@ export class Play extends Phaser.State {
         console.log(players);
 
         // all future player joins can be handled here
-        this.channel.on("player_joined", this.playerJoined.bind(this)) // doesn't seem to recv self?
-        // todo: handle the start signal
+        this.channel.on("player_joined", this.playerJoined.bind(this))
+        this.channel.on("player_left", this.playerLeft.bind(this))
+        this.channel.on("start", this.start.bind(this))
 	}
 	
     preload() {
@@ -115,5 +116,14 @@ export class Play extends Phaser.State {
         this.otherPlayer = new OtherPlayer(this.game, 300, 300);
         this.otherPlayer.preload();
         this.otherPlayer.create(this.bullets, 2, this.channel);
+    }
+
+    playerLeft(msg) {
+        console.log("player left: " + msg.player);
+    }
+
+    start(msg) {
+        console.log("received start!");
+        console.log(msg);
     }
 }

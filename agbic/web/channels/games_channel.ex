@@ -4,6 +4,14 @@ defmodule Agbic.GamesChannel do
   alias Phoenix.Socket
   require Logger
 
+
+  # TODO: run matchmaker as embedded so we can deal w/pooling and upgrading max subs?
+  # or alternately, just read from ets, change if you upgrade matchmaker
+  # or don't allow change, but for now, just get this working...
+
+  @max_subscribers Application.get_env(:matchmaker, Matchmaker.Supervisor)[:max_subscribers]
+
+  
   # lock room and set start message when max subs reach
   # handle quits in room -> bcast to all and remove the player from state
   # matchmaker needs to handle bad rooms on decrement
@@ -38,12 +46,12 @@ defmodule Agbic.GamesChannel do
     if authorized?(auth_message) do
       case RoomServer.join(RoomServer, socket.channel_pid, room_id, socket) do
         {:ok, room_pid, {player_num, players}} -> 
-          Logger.debug "got player num"
+          Logger.debug "Player #{player_num} joining room #{room_id}"
           room_ref = Process.monitor(room_pid)
-          send(self(), {:after_join, %{players: players}}) # after joining, handle this msg to bcast
+          send(self(), {:after_join, room_id, %{players: players}}) # after joining, handle this msg to bcast
           {:ok, %{player: player_num, players: players}, Socket.assign(socket, :room_ref, room_ref)}
         {:error, reason} -> 
-          Logger.debug "error from RoomServer: #{reason}"
+          Logger.debug "ERROR RoomServer: #{reason}"
           {:error, %{reason: reason}}
       end
     else
@@ -75,15 +83,37 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
-  def handle_info({:after_join, player_payload}, socket) do
+  def handle_info({:after_join, room_id, player_payload}, socket) do
     broadcast(socket, "player_joined", player_payload)
+    # check player payload to see if ready
+    if Enum.count(player_payload.players) == @max_subscribers do 
+      Logger.debug "about to tell room_server to lock room"
+      # TODO: come up w/ something better either here or when client subscribes...
+      # maybe client should send a ready signal, forward to GameRoom, let it handle
+      # when it's time to lock / start
+      :timer.sleep(1000)
+      RoomServer.lock_room(RoomServer, room_id)
+    end
+    {:noreply, socket}
+  end
+
+  def handle_info({:player_left, num}, socket) do
+    Logger.debug "GamesChannel: player #{num} left, about to notify clients"
+    push(socket, "player_left", %{player: num})
+    {:noreply, socket}
+  end
+
+  def handle_info(:start, socket) do
+    Logger.debug "GamesChannel: starting!!!"
+    push(socket, "start", %{:start => true})
     {:noreply, socket}
   end
 
   def handle_info({:DOWN, ref, :process, _pid, _reason}, socket) do
-    # leave channel if room goes down
+    # leave channel if room goes down (for now)
+    # client, however, needs to leave channel or will try to rejoin...
     cond do
-      ref == socket.assigns.room_ref -> {:stop, :normal, Socket}
+      ref == socket.assigns.room_ref -> {:stop, :normal, socket}
       true -> {:noreply, socket}
     end
   end
