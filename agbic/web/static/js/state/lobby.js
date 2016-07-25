@@ -1,4 +1,4 @@
-
+import { LobbyPlayer } from "../obj/lobbyPlayer"
 
 export class Lobby extends Phaser.State {
     init(...args) {
@@ -14,21 +14,24 @@ export class Lobby extends Phaser.State {
         console.log(players);
 
         // all future player joins can be handled here
-        this.channel.on("player_joined", this.playerJoined.bind(this)) // doesn't seem to recv self?
+        this.channel.on("player_joined", this.playerJoined.bind(this)); // doesn't seem to recv self?
         // todo: handle the start signal
 	}
 	
-	preload() {
-	}
-	
 	create() {
-	}
-	
-	update(){
+	    //create 4 lobbyPlayerItems
+	    this.lobbyPlayers = [];
+	    this.lobbyPlayers.push(new LobbyPlayer(this.game,  15, 20))
+	    this.lobbyPlayers.push(new LobbyPlayer(this.game, 130, 20))
+	    this.lobbyPlayers.push(new LobbyPlayer(this.game, 250, 20))
+	    this.lobbyPlayers.push(new LobbyPlayer(this.game, 365, 20))
+	    this.lobbyPlayers[this.playerId-1].playerJoined(this.playerId, true);
 	}
 	
 	playerJoined(players_state) {
         console.log("player joined, current state:")
         console.log(players_state);
+        var id = players_state.player;
+	    this.lobbyPlayers[id-1].playerJoined(id, false);
     }
 }

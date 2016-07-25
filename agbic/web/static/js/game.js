@@ -1,5 +1,6 @@
 import { Preload } from "./state/preload"
 import { Play } from "./state/play"
+import { Lobby } from "./state/lobby"
 
 export class Game extends Phaser.Game {
 	constructor(width, height, container) {
@@ -8,6 +9,7 @@ export class Game extends Phaser.Game {
 		// set up game state [name, class, autostart]
 		this.state.add("preload", Preload, false);
 		this.state.add("play", Play, false);
+		this.state.add("lobby", Lobby, false);
 		this.antialias = false;
 	}
 
