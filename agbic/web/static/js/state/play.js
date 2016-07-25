@@ -63,6 +63,7 @@ export class Play extends Phaser.State {
         this.player.create(this.bullets, this.playerId, this.channel);
         if(!this.playerId){ console.log("WE HAVE NO ID");}
         if(this.otherPlayers && this.otherPlayers.length > 1){
+            
             this.otherPlayer = new OtherPlayer(this.game, 300, 300);
             this.otherPlayer.preload();
             this.otherPlayer.create(this.bullets, 2, this.channel);
