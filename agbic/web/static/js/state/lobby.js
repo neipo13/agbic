@@ -15,6 +15,7 @@ export class Lobby extends Phaser.State {
 
         // all future player joins can be handled here
         this.channel.on("player_joined", this.playerJoined.bind(this)); // doesn't seem to recv self?
+        this.channel.on("start", this.startGame.bind(this));
         // todo: handle the start signal
 	}
 	
@@ -29,9 +30,23 @@ export class Lobby extends Phaser.State {
 	}
 	
 	playerJoined(players_state) {
-        console.log("player joined, current state:")
-        console.log(players_state);
-        var id = players_state.player;
-	    this.lobbyPlayers[id-1].playerJoined(id, false);
+		if(players_state.player != this.playerId){
+	        console.log("player joined, current state:")
+	        console.log(players_state);
+	        var id = players_state.player;
+	        var index = id - 1;
+	        this.otherPlayers = players_state.players;
+		    this.lobbyPlayers[index].playerJoined(id, false);
+		    this.lobbyPlayers[index].portrait.tint = Math.random() * 0xffffff;
+		}
+    }
+    
+    startGame(){
+    	var data = {
+    		channel: this.channel,
+    		playerId: this.playerId,
+    		otherPlayers: this.otherPlayers
+    	};
+        this.game.state.start('play', true, false, data);
     }
 }

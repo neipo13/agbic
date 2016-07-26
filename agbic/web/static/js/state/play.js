@@ -10,12 +10,12 @@ export class Play extends Phaser.State {
         // as we'll receive the player_joined bcast before we can handle the event
         // alternately, subscribe to the event before joining the game_room
         // back in preload
-		let [{player, players, channel}] = args;
+		let [{playerId, otherPlayers, channel}] = args;
 		this.channel = channel;
-		this.playerId = player;
-		this.otherPlayers = players;
-        console.log(player);
-        console.log(players);
+		this.playerId = playerId;
+		this.otherPlayers = otherPlayers;
+        console.log(playerId);
+        console.log(otherPlayers);
 
         // all future player joins can be handled here
         this.channel.on("player_joined", this.playerJoined.bind(this))
@@ -63,11 +63,13 @@ export class Play extends Phaser.State {
         this.player.preload();
         this.player.create(this.bullets, this.playerId, this.channel);
         if(!this.playerId){ console.log("WE HAVE NO ID");}
-        if(this.otherPlayers && this.otherPlayers.length > 1){
-            
-            this.otherPlayer = new OtherPlayer(this.game, 300, 300);
-            this.otherPlayer.preload();
-            this.otherPlayer.create(this.bullets, 2, this.channel);
+        for(var i = 0; i < this.otherPlayers.length; i++){
+            //console.log(this.otherPlayers[i]);
+            if(this.otherPlayers[i] != this.playerId){
+                this.otherPlayer = new OtherPlayer(this.game, 300, 160);
+                this.otherPlayer.preload();
+                this.otherPlayer.create(this.bullets, this.otherPlayers[i], this.channel);
+            }
         }
         this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
         this.game.physics.arcade.isPaused = false;
@@ -116,7 +118,7 @@ export class Play extends Phaser.State {
         console.log(players_state);
         this.otherPlayer = new OtherPlayer(this.game, 300, 300);
         this.otherPlayer.preload();
-        this.otherPlayer.create(this.bullets, 2, this.channel);
+        this.otherPlayer.create(this.bullets, players_state.player, this.channel);
     }
 
     playerLeft(msg) {

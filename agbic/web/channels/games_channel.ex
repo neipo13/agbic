@@ -48,8 +48,9 @@ defmodule Agbic.GamesChannel do
         {:ok, room_pid, {player_num, players}} -> 
           Logger.debug "Player #{player_num} joining room #{room_id}"
           room_ref = Process.monitor(room_pid)
-          send(self(), {:after_join, room_id, %{players: players}}) # after joining, handle this msg to bcast
-          {:ok, %{player: player_num, players: players}, Socket.assign(socket, :room_ref, room_ref)}
+          payload = %{player: player_num, players: players}
+          send(self(), {:after_join, room_id, payload}) # after joining, handle this msg to bcast
+          {:ok, payload, Socket.assign(socket, :room_ref, room_ref)}
         {:error, reason} -> 
           Logger.debug "ERROR RoomServer: #{reason}"
           {:error, %{reason: reason}}
