@@ -29,7 +29,8 @@ export class LocalPlayer extends Player{
             y: this.y, 
             rotation:this.gun.rotation, 
             scaleX: this.scale.x,
-            velocity: this.body.velocity
+            velocity: this.body.velocity,
+            playerId: this.id
         });
     }
     

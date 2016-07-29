@@ -2,6 +2,8 @@ export class Preload extends Phaser.State {
     preload() {
         this.game.load.image('particle', 'images/particle.png');
         this.game.load.image('grassTiles', 'images/tiles_packed.png');
+        this.game.load.image('portrait', 'images/Portrait.png');
+        this.game.load.image('arrow', 'images/RightArrow.png');
         this.game.load.tilemap('arena1', 'levels/arena1.json', null, Phaser.Tilemap.TILED_JSON);
 
         this.game.load.spritesheet('player', 'images/blastressa.png', 32, 32, 12);
@@ -43,7 +45,7 @@ export class Preload extends Phaser.State {
 			    console.log("Joined game room successfully", resp);
                 // leave the lobby!
                 this.channel.leave(); 
-                this.game.state.start('play', true, false, resp); 
+                this.game.state.start('lobby', true, false, resp); 
 			})
 			.receive("error", resp => 
 			{ 

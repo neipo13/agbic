@@ -13,21 +13,23 @@ export class OtherPlayer extends Player{
     }
     
     updatePosition(movement){
-        console.log("got movement", movement);
-        this.x = movement.x;
-        this.y = movement.y;
-        this.gun.x = movement.x;
-        this.gun.y = movement.y;
-        this.gun.body.velocity = movement.velocity;
-        this.gun.rotation = movement.rotation;
-        this.scale.x = movement.scaleX;
-        this.gun.scale.setTo(1, this.scale.x);
-        this.body.velocity = movement.velocity;
-        if(movement.velocity.x != 0 || movement.velocity.y != 0){
-            this.animate('run');
-        }
-        else{
-            this.animate('idle');
+        if(movement.playerId == this.id){
+            console.log("got movement", movement);
+            this.x = movement.x;
+            this.y = movement.y;
+            this.gun.x = movement.x;
+            this.gun.y = movement.y;
+            this.gun.body.velocity = movement.velocity;
+            this.gun.rotation = movement.rotation;
+            this.scale.x = movement.scaleX;
+            this.gun.scale.setTo(1, this.scale.x);
+            this.body.velocity = movement.velocity;
+            if(movement.velocity.x != 0 || movement.velocity.y != 0){
+                this.animate('run');
+            }
+            else{
+                this.animate('idle');
+            }
         }
     }
 }
