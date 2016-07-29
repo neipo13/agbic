@@ -1,11 +1,11 @@
 defmodule Agbic.GamesChannel do
   use Agbic.Web, :channel
   alias Matchmaker.RoomServer
+  alias Agbic.GameRoom
   alias Phoenix.Socket
   require Logger
 
 
- 
   # lock room and set start message when max subs reach
   # handle quits in room -> bcast to all and remove the player from state
   # matchmaker needs to handle bad rooms on decrement
@@ -81,10 +81,11 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
-  def handle_in("ready", payload, socket) do
-    # payload should have %{player: pid, ready: bool}
+  def handle_in("ready", %{"player" => num, "ready" => ready}, socket) do
     # send to GameRoom
-    GameRoom.player_ready(socket.assigns.room_pid, payload)
+    Logger.debug "GamesChannel: received ready signal"
+    player_info =  %{:player => num, :ready => ready} # prefer atoms
+    GameRoom.player_ready(socket.assigns.room_pid, player_info)
     {:noreply, socket}
   end
 
