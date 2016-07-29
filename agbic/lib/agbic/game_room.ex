@@ -29,6 +29,11 @@ defmodule Agbic.GameRoom do
     GenServer.call(room, :lock)
   end
 
+  def player_ready(room, player_info) do
+    Logger.debug "GameRoom player ready..."
+    #GenServer.call(room, {:ready, player_info})
+  end
+
   # ---
 
   def init({:ok, room_id, room_server}) do

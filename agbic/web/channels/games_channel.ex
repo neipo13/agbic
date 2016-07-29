@@ -49,7 +49,10 @@ defmodule Agbic.GamesChannel do
           Logger.debug "Player #{player_num} joining room #{room_id}"
           room_ref = Process.monitor(room_pid)
           send(self(), {:after_join, room_id, %{players: players}}) # after joining, handle this msg to bcast
-          {:ok, %{player: player_num, players: players}, Socket.assign(socket, :room_ref, room_ref)}
+          sock = 
+            Socket.assign(socket, :room_pid, room_pid)
+            |> Socket.assign(:room_ref, room_ref)
+          {:ok, %{player: player_num, players: players}, sock}
         {:error, reason} -> 
           Logger.debug "ERROR RoomServer: #{reason}"
           {:error, %{reason: reason}}
@@ -81,6 +84,12 @@ defmodule Agbic.GamesChannel do
   def handle_in("movement", payload, socket) do
     broadcast_from(socket, "movement", payload)
     {:noreply, socket}
+  end
+
+  def handle_in("ready", payload, socket) do
+    # payload should have %{player: pid, ready: bool}
+
+
   end
 
   def handle_info({:after_join, room_id, player_payload}, socket) do
