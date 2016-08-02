@@ -1,17 +1,11 @@
 defmodule Agbic.GamesChannel do
   use Agbic.Web, :channel
   alias Matchmaker.RoomServer
+  alias Agbic.GameRoom
   alias Phoenix.Socket
   require Logger
 
 
-  # TODO: run matchmaker as embedded so we can deal w/pooling and upgrading max subs?
-  # or alternately, just read from ets, change if you upgrade matchmaker
-  # or don't allow change, but for now, just get this working...
-
-  @max_subscribers Application.get_env(:matchmaker, Matchmaker.Supervisor)[:max_subscribers]
-
-  
   # lock room and set start message when max subs reach
   # handle quits in room -> bcast to all and remove the player from state
   # matchmaker needs to handle bad rooms on decrement
@@ -49,8 +43,11 @@ defmodule Agbic.GamesChannel do
           Logger.debug "Player #{player_num} joining room #{room_id}"
           room_ref = Process.monitor(room_pid)
           payload = %{player: player_num, players: players}
-          send(self(), {:after_join, room_id, payload}) # after joining, handle this msg to bcast
-          {:ok, payload, Socket.assign(socket, :room_ref, room_ref)}
+          send(self(), {:after_join, payload}) # after joining, handle this msg to bcast
+          sock = 
+            Socket.assign(socket, :room_pid, room_pid)
+            |> Socket.assign(:room_ref, room_ref)
+          {:ok, payload, sock}
         {:error, reason} -> 
           Logger.debug "ERROR RoomServer: #{reason}"
           {:error, %{reason: reason}}
@@ -84,17 +81,16 @@ defmodule Agbic.GamesChannel do
     {:noreply, socket}
   end
 
-  def handle_info({:after_join, room_id, player_payload}, socket) do
+  def handle_in("ready", %{"player" => num, "ready" => ready}, socket) do
+    # send to GameRoom
+    Logger.debug "GamesChannel: received ready signal"
+    player_info =  %{:player => num, :ready => ready} # prefer atoms
+    GameRoom.player_ready(socket.assigns.room_pid, player_info)
+    {:noreply, socket}
+  end
+
+  def handle_info({:after_join, player_payload}, socket) do
     broadcast(socket, "player_joined", player_payload)
-    # check player payload to see if ready
-    if Enum.count(player_payload.players) == @max_subscribers do 
-      Logger.debug "about to tell room_server to lock room"
-      # TODO: come up w/ something better either here or when client subscribes...
-      # maybe client should send a ready signal, forward to GameRoom, let it handle
-      # when it's time to lock / start
-      :timer.sleep(1000)
-      RoomServer.lock_room(RoomServer, room_id)
-    end
     {:noreply, socket}
   end
 

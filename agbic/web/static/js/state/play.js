@@ -17,10 +17,12 @@ export class Play extends Phaser.State {
         console.log(playerId);
         console.log(otherPlayers);
 
+
         // all future player joins can be handled here
         this.channel.on("player_joined", this.playerJoined.bind(this))
         this.channel.on("player_left", this.playerLeft.bind(this))
         this.channel.on("start", this.start.bind(this))
+        
 	}
 	
     preload() {
