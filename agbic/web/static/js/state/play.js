@@ -1,8 +1,30 @@
 //needs to import player and input
 import { Input } from "../util/input"
-import { Player } from "../obj/player"
+import { LocalPlayer } from "../obj/localPlayer"
+import { OtherPlayer } from "../obj/otherPlayer"
 
 export class Play extends Phaser.State {
+    
+    init(...args) {
+        // note: we have to handle the first players state msg here,
+        // as we'll receive the player_joined bcast before we can handle the event
+        // alternately, subscribe to the event before joining the game_room
+        // back in preload
+		let [{playerId, otherPlayers, channel}] = args;
+		this.channel = channel;
+		this.playerId = playerId;
+		this.otherPlayers = otherPlayers;
+        console.log(playerId);
+        console.log(otherPlayers);
+
+
+        // all future player joins can be handled here
+        this.channel.on("player_joined", this.playerJoined.bind(this))
+        this.channel.on("player_left", this.playerLeft.bind(this))
+        this.channel.on("start", this.start.bind(this))
+        
+	}
+	
     preload() {
         console.log("in play preload");
         this.ready = false;
@@ -11,6 +33,8 @@ export class Play extends Phaser.State {
         this.bgLayer = null;
         this.blockLayer = null;
         this.input = new Input(this.game);
+		
+		this.stage.disableVisibilityChange = true;
     }
     
     create() {
@@ -37,9 +61,18 @@ export class Play extends Phaser.State {
         // this.game.roomCols = 30;
         // this.game.roomRows = 30;
         
-        this.player = new Player(this.game, 144, 160);
+        this.player = new LocalPlayer(this.game, 144, 160);
         this.player.preload();
-        this.player.create(this.game, 144, 160, this.bullets);
+        this.player.create(this.bullets, this.playerId, this.channel);
+        if(!this.playerId){ console.log("WE HAVE NO ID");}
+        for(var i = 0; i < this.otherPlayers.length; i++){
+            //console.log(this.otherPlayers[i]);
+            if(this.otherPlayers[i] != this.playerId){
+                this.otherPlayer = new OtherPlayer(this.game, 300, 160);
+                this.otherPlayer.preload();
+                this.otherPlayer.create(this.bullets, this.otherPlayers[i], this.channel);
+            }
+        }
         this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
         this.game.physics.arcade.isPaused = false;
         
@@ -56,7 +89,8 @@ export class Play extends Phaser.State {
             this.bullets.callAll('doUpdate', null);
             
             var commands = this.input.update();
-            this.player.update(commands);
+            this.player.doUpdate(commands);
+            this.player.doPostUpdate();
         }
     }
     
@@ -79,5 +113,22 @@ export class Play extends Phaser.State {
             return true;
         }
         return false;
+    }
+
+    playerJoined(players_state) {
+        console.log("player joined, current state:")
+        console.log(players_state);
+        this.otherPlayer = new OtherPlayer(this.game, 300, 300);
+        this.otherPlayer.preload();
+        this.otherPlayer.create(this.bullets, players_state.player, this.channel);
+    }
+
+    playerLeft(msg) {
+        console.log("player left: " + msg.player);
+    }
+
+    start(msg) {
+        console.log("received start!");
+        console.log(msg);
     }
 }
